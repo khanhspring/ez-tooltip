@@ -1,7 +1,29 @@
 {
   "name": "ez-tooltip",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "description": "React Tooltip component",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khanhspring/ez-tooltip.git"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "react",
+    "typescript",
+    "tooltip",
+    "react-tooltip"
+  ],
+  "author": "khanhspring",
+  "license": "MIT",
+
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -20,7 +42,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
+    "build:lib": "npm run build:esm && npm run build:cjs"
   },
   "eslintConfig": {
     "extends": [
