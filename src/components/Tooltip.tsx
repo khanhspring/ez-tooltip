@@ -1,24 +1,38 @@
+import { arrow, offset } from '@floating-ui/core';
+import { autoUpdate } from '@floating-ui/dom';
+import { Placement, useFloating } from '@floating-ui/react';
 import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { useOutsideClick } from '../hooks/useOutsideClick';
-import { Placement, Trigger } from '../models/tooltip';
-import { calculatePosition } from '../utils/tooltip-util';
+import { Trigger } from '../models/tooltip';
+import Arrow from './Arrow';
 
 type Props = {
   content: string;
   placement?: Placement;
   trigger?: Trigger;
   children: ReactElement;
+  className?: string;
+  arrowClassName?: string;
 }
 
-const SPACING = 3;
+const OFFSET = 5;
 
-const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', children }) => {
-  const componentRef = useRef<any>(null);
-  const tooltipRef = useRef<any>(null);
-
-  const timerRef = useRef<any>(null);
+const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', className = '', arrowClassName = '', children }) => {
   const [visible, setVisible] = useState(false);
   const [hiding, setHiding] = useState(false);
+  const timerRef = useRef<any>(null);
+  const arrowRef = useRef(null);
+
+  const { x, y, strategy, refs, middlewareData } = useFloating({
+    placement,
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(OFFSET),
+      arrow({
+        element: arrowRef?.current
+      })
+    ]
+  });
 
   const handleClick = useCallback(() => {
     if (trigger !== 'click') {
@@ -30,10 +44,6 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
       show();
     }
   }, [visible, trigger]);
-
-  const handleClickOutside = useCallback(() => {
-    hide();
-  }, []);
 
   const handleMouseEnter = useCallback(() => {
     if (trigger !== 'hover') {
@@ -49,69 +59,72 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
     hide();
   }, [trigger]);
 
-  const handleResize = useCallback(() => {
-    calculatePosition(placement, SPACING, componentRef?.current, tooltipRef?.current);
-  }, [placement]);
+  const handleClickOutside = useCallback(() => {
+    hide();
+  }, []);
 
   useEffect(() => {
-    const refCurrent = componentRef?.current;
+    const reference = refs?.domReference?.current;
 
-    if (refCurrent) {
-      refCurrent.addEventListener("click", handleClick);
-      refCurrent.addEventListener("mouseenter", handleMouseEnter);
-      refCurrent.addEventListener("mouseleave", handleMouseLeave);
+    if (reference) {
+      reference.addEventListener("click", handleClick);
+      reference.addEventListener("mouseenter", handleMouseEnter);
+      reference.addEventListener("mouseleave", handleMouseLeave);
 
       return function cleanup() {
-        refCurrent.removeEventListener("click", handleClick);
-        refCurrent.removeEventListener("mouseenter", handleMouseEnter);
-        refCurrent.removeEventListener("mouseleave", handleMouseLeave);
+        reference.removeEventListener("click", handleClick);
+        reference.removeEventListener("mouseenter", handleMouseEnter);
+        reference.removeEventListener("mouseleave", handleMouseLeave);
       };
     }
-  }, [componentRef, handleClick, handleMouseEnter, handleMouseLeave]);
+  }, [refs, handleClick, handleMouseEnter, handleMouseLeave]);
 
-  useEffect(() => {
-    window.addEventListener("resize", handleResize);
-
-    return function cleanup() {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [handleResize]);
-
-  useOutsideClick(componentRef, handleClickOutside);
-  setTimeout(() => {
-    calculatePosition(placement, SPACING, componentRef?.current, tooltipRef?.current);
-  }, 0);
-
-  const hide = () => {
-    setHiding(true);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-    }
-    timerRef.current = setTimeout(() => {
-      setVisible(false);
-      setHiding(false);
-    }, 200)
-  }
+  useOutsideClick(refs?.domReference, handleClickOutside);
 
   const show = () => {
     if (timerRef.current) {
-      clearTimeout(timerRef.current)
+      clearTimeout(timerRef.current);
     }
-    setVisible(true);
     setHiding(false);
+    setVisible(true);
+  }
+
+  const hide = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setHiding(true);
+    timerRef.current = setTimeout(() => {
+      setVisible(false);
+      setHiding(false);
+    }, 200);
   }
 
   return (
     <>
-      {React.cloneElement(children, { ref: componentRef })}
+      {React.cloneElement(children, { ref: refs.setReference })}
       <div
-        ref={tooltipRef}
+        ref={refs.setFloating}
+        style={{
+          position: strategy,
+          top: y ?? 0,
+          left: x ?? 0,
+          width: 'max-content',
+        }}
         className={`
-          ez-tooltip absolute bg-slate-900/95 text-white px-2 py-1 rounded shadow text-sm
+          ez-tooltip absolute bg-slate-900 text-white px-2 py-1 rounded shadow text-sm
+          ${className}
           ${visible ? 'visible' : 'hidden'}
-          ${hiding ? ' animate-fade-out' : ''}
+          ${hiding ? 'animate-fade-out' : ''}
         `}
       >
+        <Arrow
+          className={arrowClassName}
+          placement={placement}
+          ref={arrowRef}
+          x={middlewareData?.arrow?.x}
+          y={middlewareData?.arrow?.y}
+        />
         {content}
       </div>
     </>
