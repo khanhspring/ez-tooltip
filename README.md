@@ -1,13 +1,13 @@
 ### Installation
 
 ```
-npm install ez-tooltip
+npm install ez-rc-tooltip
 ```
 
 or
 
 ```
-yarn add ez-tooltip
+yarn add ez-rc-tooltip
 ```
 
 ### Usage
@@ -15,13 +15,13 @@ yarn add ez-tooltip
 #### 1. Import the CSS file to set default styling
 
 ```
-@import url('/node_modules/ez-tooltip/dist/index.css');
+@import url('/node_modules/ez-rc-tooltip/dist/index.css');
 ```
 
-#### 2. Import ez-tooltip after installation
+#### 2. Import ez-rc-tooltip after installation
 
 ```
-import { Tooltip } from "ez-tooltip";
+import { Tooltip } from "ez-rc-tooltip";
 ```
 
 #### 3. Use Tooltip component to wrap another component that you want show the tooltip
