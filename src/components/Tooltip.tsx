@@ -2,22 +2,25 @@ import { arrow, offset } from '@floating-ui/core';
 import { autoUpdate } from '@floating-ui/dom';
 import { Placement, useFloating } from '@floating-ui/react';
 import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useOutsideClick } from '../hooks/useOutsideClick';
 import { Trigger } from '../models/tooltip';
 import Arrow from './Arrow';
 
 type Props = {
-  content: string;
+  content: string | ReactElement;
   placement?: Placement;
   trigger?: Trigger;
   children: ReactElement;
   className?: string;
   arrowClassName?: string;
+  spacing?: number;
+  hideArrow?: boolean;
 }
 
 const OFFSET = 5;
 
-const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', className = '', arrowClassName = '', children }) => {
+const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', className = '', arrowClassName = '', spacing = 0, hideArrow = false, children }) => {
   const [visible, setVisible] = useState(false);
   const [hiding, setHiding] = useState(false);
   const timerRef = useRef<any>(null);
@@ -27,7 +30,7 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
     placement,
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset(OFFSET),
+      offset(OFFSET + spacing),
       arrow({
         element: arrowRef?.current
       })
@@ -100,24 +103,24 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
     }, 200);
   }
 
-  return (
-    <>
-      {React.cloneElement(children, { ref: refs.setReference })}
-      <div
-        ref={refs.setFloating}
-        style={{
-          position: strategy,
-          top: y ?? 0,
-          left: x ?? 0,
-          width: 'max-content',
-        }}
-        className={`
-          ez-tooltip absolute bg-slate-900 text-white px-2 py-1 rounded shadow text-sm
-          ${className}
-          ${visible ? 'visible' : 'hidden'}
-          ${hiding ? 'animate-fade-out' : ''}
-        `}
-      >
+  const tooltip = (
+    <div
+      ref={refs.setFloating}
+      style={{
+        position: strategy,
+        top: y ?? 0,
+        left: x ?? 0,
+        width: 'max-content',
+      }}
+      className={`
+        ez-tooltip absolute bg-slate-900 text-white px-2 py-1 rounded shadow text-sm
+        ${className}
+        ${visible ? 'visible' : 'hidden'}
+        ${hiding ? 'animate-fade-out' : ''}
+      `}
+    >
+      {
+        !hideArrow &&
         <Arrow
           className={arrowClassName}
           placement={placement}
@@ -125,8 +128,15 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
           x={middlewareData?.arrow?.x}
           y={middlewareData?.arrow?.y}
         />
-        {content}
-      </div>
+      }
+      {content}
+    </div>
+  );
+
+  return (
+    <>
+      {React.cloneElement(children, { ref: refs.setReference })}
+      {createPortal(tooltip, document.body)}
     </>
   );
 }
