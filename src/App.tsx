@@ -10,8 +10,20 @@ function App() {
     </>
   )
 
+  const content2 = (
+    <>
+      <h1>Hello</h1>
+    </>
+  )
+
+  const content3 = (
+    <>
+      <h1>Hello</h1>
+    </>
+  )
+
   return (
-    <div className="w-[500px] m-auto text-center p-10 bg-slate-800">
+    <div className="w-[500px] m-auto text-center p-10 py-[200px] bg-slate-800">
       <Tooltip
         content={content}
         trigger='hover'
@@ -24,7 +36,33 @@ function App() {
         openDelay={0}
         clickToClose
       >
-        <button className='bg-blue-700 p-2 text-white'>Button</button>
+        <Tooltip
+          content={content2}
+          trigger='hover'
+          placement='right'
+          className="bg-red-500 text-slate-100"
+          arrowClassName="border-red-500"
+          spacing={5}
+          hideArrow
+          closeDelay={true}
+          openDelay={0}
+          clickToClose
+        >
+          <Tooltip
+            content={content3}
+            trigger='hover'
+            placement='left'
+            className="bg-red-500 text-slate-100"
+            arrowClassName="border-red-500"
+            spacing={5}
+            hideArrow
+            closeDelay={true}
+            openDelay={0}
+            clickToClose
+          >
+            <button className='bg-blue-700 p-2 text-white'>Button</button>
+          </Tooltip>
+        </Tooltip>
       </Tooltip>
     </div>
   );
