@@ -20,6 +20,9 @@ function App() {
         arrowClassName="border-red-500"
         spacing={5}
         hideArrow
+        closeDelay={true}
+        openDelay={0}
+        clickToClose
       >
         <button className='bg-blue-700 p-2 text-white'>Button</button>
       </Tooltip>

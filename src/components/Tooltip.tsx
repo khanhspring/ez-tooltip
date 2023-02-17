@@ -16,14 +16,30 @@ type Props = {
   arrowClassName?: string;
   spacing?: number;
   hideArrow?: boolean;
+  openDelay?: boolean | number;
+  closeDelay?: boolean;
+  clickToClose?: boolean; // only for trigger is hover
 }
 
 const OFFSET = 5;
 
-const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', className = '', arrowClassName = '', spacing = 0, hideArrow = false, children }) => {
+const Tooltip: FC<Props> = ({
+  content,
+  placement = 'bottom',
+  trigger = 'hover',
+  className = '',
+  arrowClassName = '',
+  spacing = 0,
+  hideArrow = false,
+  openDelay = false,
+  closeDelay = true,
+  clickToClose = false,
+  children
+}) => {
   const [visible, setVisible] = useState(false);
   const [hiding, setHiding] = useState(false);
-  const timerRef = useRef<any>(null);
+  const closeTimerRef = useRef<any>(null);
+  const openTimerRef = useRef<any>(null);
   const arrowRef = useRef(null);
 
   const { x, y, strategy, refs, middlewareData } = useFloating({
@@ -38,13 +54,16 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
   });
 
   const handleClick = useCallback(() => {
-    if (trigger !== 'click') {
-      return;
-    }
-    if (visible) {
+    if (trigger === 'hover') {
       hide();
-    } else {
-      show();
+    }
+
+    if (trigger === 'click') {
+      if (visible) {
+        hide();
+      } else {
+        show();
+      }
     }
   }, [visible, trigger]);
 
@@ -85,22 +104,38 @@ const Tooltip: FC<Props> = ({ content, placement = 'bottom', trigger = 'hover', 
   useOutsideClick(refs?.domReference, handleClickOutside);
 
   const show = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
     }
+    if (openTimerRef.current) {
+      clearTimeout(openTimerRef.current);
+    }
+
+    let delay = 0;
+    if (typeof openDelay === 'boolean') {
+      delay = 300;
+    } else if (typeof openDelay === 'number') {
+      delay = openDelay;
+    }
+
     setHiding(false);
-    setVisible(true);
+    openTimerRef.current = setTimeout(() => {
+      setVisible(true);
+    }, delay);
   }
 
   const hide = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+    if (openTimerRef.current) {
+      clearTimeout(openTimerRef.current);
     }
     setHiding(true);
-    timerRef.current = setTimeout(() => {
+    closeTimerRef.current = setTimeout(() => {
       setVisible(false);
       setHiding(false);
-    }, 200);
+    }, closeDelay ? 200 : 0);
   }
 
   const tooltip = (
